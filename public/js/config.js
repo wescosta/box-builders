@@ -1,5 +1,5 @@
 System.config({
-  baseURL: "public",
+  baseURL: "js",
   defaultJSExtensions: true,
   transpiler: "babel",
   babelOptions: {
@@ -11,6 +11,22 @@ System.config({
   paths: {
     "github:*": "jspm_packages/github/*",
     "npm:*": "jspm_packages/npm/*"
+  },
+  bundles: {
+    "build.js": [
+      "main.js",
+      "ambient.js",
+      "lib/Detector.js",
+      "github:mrdoob/three.js@master.js",
+      "github:mrdoob/three.js@master/build/three.js",
+      "npm:babel-runtime@5.8.38/helpers/class-call-check.js",
+      "npm:babel-runtime@5.8.38/helpers/create-class.js",
+      "npm:babel-runtime@5.8.38/core-js/object/define-property.js",
+      "npm:core-js@1.2.6/library/fn/object/define-property.js",
+      "npm:core-js@1.2.6/library/modules/$.js",
+      "github:socketio/socket.io-client@1.4.6.js",
+      "github:socketio/socket.io-client@1.4.6/socket.io.js"
+    ]
   },
 
   map: {
