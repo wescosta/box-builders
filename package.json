@@ -1,7 +1,7 @@
 {
   "name": "box-builders",
   "version": "1.0.0",
-  "description": "A simple multiplayer test",
+  "description": "A simple multiplayer 'game' test with ES6 and websockts",
   "main": "index.js",
   "author": "Wesley Anemam - wesleylira@gmail.com",
   "license": "ISC",
