@@ -18,6 +18,11 @@ app.get('/', (request, response) => {
 
 io.on('connection', socket => {
   socket.emit('hi', {hi: ' hi there'})
+
+  socket.on('add', box => {
+    console.log('Broadcast a new box', box)
+    socket.broadcast.emit('add', box)
+  })
 })
 
 app.set('port', SERVER_PORT)

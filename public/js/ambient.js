@@ -1,5 +1,6 @@
 import * as THREE from 'three.js'
 import * as Detector from './lib/Detector'
+import {noop} from './utils'
 
 class Ambient {
   constructor(){
@@ -28,6 +29,7 @@ class Ambient {
     this.cubeMaterial = new THREE.MeshLambertMaterial( { color: 0xfeb74c, map: new THREE.TextureLoader().load( "textures/square-outline-textured.png" ) } );
 
     this.isShiftDown = false
+    this.callbacks = {}
   }
 
   init() {
@@ -94,6 +96,8 @@ class Ambient {
     window.addEventListener( 'resize', this.onWindowResize.bind(this), false );
 
     this.render()
+
+    return this
   }
 
   onWindowResize() {
@@ -129,12 +133,7 @@ class Ambient {
 
       } else {
 
-        var voxel = new THREE.Mesh( this.cubeGeo, this.cubeMaterial );
-        voxel.position.copy( intersect.point ).add( intersect.face.normal );
-        voxel.position.divideScalar( 50 ).floor().multiplyScalar( 50 ).addScalar( 25 );
-        this.scene.add( voxel );
-
-        this.objects.push( voxel );
+        this.add(intersect)
 
       }
 
@@ -184,6 +183,29 @@ class Ambient {
 
   render() {
     this.renderer.render( this.scene, this.camera )
+  }
+
+  add(box){
+    let {point, face} = box
+
+    var voxel = new THREE.Mesh( this.cubeGeo, this.cubeMaterial );
+    voxel.position.copy( point ).add( face.normal );
+    voxel.position.divideScalar( 50 ).floor().multiplyScalar( 50 ).addScalar( 25 );
+
+    this.scene.add( voxel );
+    this.objects.push( voxel );
+
+    (this.callbacks.add || noop)({
+      point,
+      face
+    })
+
+    this.render()
+  }
+
+  on(event, callback){
+    this.callbacks[event] = callback || noop
+    return this
   }
 }
 

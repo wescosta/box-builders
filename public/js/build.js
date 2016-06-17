@@ -27252,8 +27252,21 @@ System.registerDynamic("lib/Detector.js", [], true, function($__require, exports
   return module.exports;
 });
 
-System.register('ambient.js', ['npm:babel-runtime@5.8.38/helpers/create-class.js', 'npm:babel-runtime@5.8.38/helpers/class-call-check.js', 'github:mrdoob/three.js@master.js', 'lib/Detector.js'], function (_export) {
-  var _createClass, _classCallCheck, THREE, Detector, Ambient;
+System.register("utils.js", [], function (_export) {
+  "use strict";
+
+  var noop;
+  return {
+    setters: [],
+    execute: function () {
+      noop = function noop() {};
+
+      _export("noop", noop);
+    }
+  };
+});
+System.register('ambient.js', ['npm:babel-runtime@5.8.38/helpers/create-class.js', 'npm:babel-runtime@5.8.38/helpers/class-call-check.js', 'github:mrdoob/three.js@master.js', 'lib/Detector.js', 'utils.js'], function (_export) {
+  var _createClass, _classCallCheck, THREE, Detector, noop, Ambient;
 
   return {
     setters: [function (_npmBabelRuntime5838HelpersCreateClassJs) {
@@ -27264,6 +27277,8 @@ System.register('ambient.js', ['npm:babel-runtime@5.8.38/helpers/create-class.js
       THREE = _githubMrdoobThreeJsMasterJs;
     }, function (_libDetectorJs) {
       Detector = _libDetectorJs;
+    }, function (_utilsJs) {
+      noop = _utilsJs.noop;
     }],
     execute: function () {
       'use strict';
@@ -27297,6 +27312,7 @@ System.register('ambient.js', ['npm:babel-runtime@5.8.38/helpers/create-class.js
           this.cubeMaterial = new THREE.MeshLambertMaterial({ color: 0xfeb74c, map: new THREE.TextureLoader().load("textures/square-outline-textured.png") });
 
           this.isShiftDown = false;
+          this.callbacks = {};
         }
 
         _createClass(Ambient, [{
@@ -27364,6 +27380,8 @@ System.register('ambient.js', ['npm:babel-runtime@5.8.38/helpers/create-class.js
             window.addEventListener('resize', this.onWindowResize.bind(this), false);
 
             this.render();
+
+            return this;
           }
         }, {
           key: 'onWindowResize',
@@ -27400,12 +27418,7 @@ System.register('ambient.js', ['npm:babel-runtime@5.8.38/helpers/create-class.js
                 // create cube
               } else {
 
-                  var voxel = new THREE.Mesh(this.cubeGeo, this.cubeMaterial);
-                  voxel.position.copy(intersect.point).add(intersect.face.normal);
-                  voxel.position.divideScalar(50).floor().multiplyScalar(50).addScalar(25);
-                  this.scene.add(voxel);
-
-                  this.objects.push(voxel);
+                  this.add(intersect);
                 }
 
               this.render();
@@ -27459,6 +27472,32 @@ System.register('ambient.js', ['npm:babel-runtime@5.8.38/helpers/create-class.js
           value: function render() {
             this.renderer.render(this.scene, this.camera);
           }
+        }, {
+          key: 'add',
+          value: function add(box) {
+            var point = box.point;
+            var face = box.face;
+
+            var voxel = new THREE.Mesh(this.cubeGeo, this.cubeMaterial);
+            voxel.position.copy(point).add(face.normal);
+            voxel.position.divideScalar(50).floor().multiplyScalar(50).addScalar(25);
+
+            this.scene.add(voxel);
+            this.objects.push(voxel);
+
+            (this.callbacks.add || noop)({
+              point: point,
+              face: face
+            });
+
+            this.render();
+          }
+        }, {
+          key: 'on',
+          value: function on(event, callback) {
+            this.callbacks[event] = callback || noop;
+            return this;
+          }
         }]);
 
         return Ambient;
@@ -27485,7 +27524,15 @@ System.register('main.js', ['github:socketio/socket.io-client@1.4.6.js', 'ambien
         return console.log(message);
       });
 
-      Ambient.init();
+      Ambient.init().on('add', function (box) {
+        console.log('Ship the box through the socket >>', box);
+        io.emit('add', box);
+      });
+
+      io.on('add', function (box) {
+        console.log('Yo! Got a box from the socket', box);
+        Ambient.add(box);
+      });
     }
   };
 });

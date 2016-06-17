@@ -16,6 +16,7 @@ System.config({
     "build.js": [
       "main.js",
       "ambient.js",
+      "utils.js",
       "lib/Detector.js",
       "github:mrdoob/three.js@master.js",
       "github:mrdoob/three.js@master/build/three.js",
